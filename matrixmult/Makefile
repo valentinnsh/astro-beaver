@@ -1,7 +1,7 @@
 files=$(wildcard *.f90)
 obj=$(patsubst %.f90, %.o, $(files))
 
-res: result
+res: result clean
 
 result: main
 	./main
