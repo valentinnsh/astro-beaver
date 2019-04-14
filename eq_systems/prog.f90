@@ -2,10 +2,10 @@ program solve_equalation
   use eq_solver
   implicit none
 
-  integer :: id, i, n
+  integer :: id, i, j, n
   real, dimension(:,:) :: A
-  real, dimension(:) :: B, X
-
+  real, dimension(:) :: B, X, R
+  real :: R_module
   !Вводится с комндной строки
   ! gaus для схемы гаусса, jordan для схемы жордана,
   ! upgaus для схемы гаусса с перестановкой строк
@@ -35,4 +35,17 @@ program solve_equalation
   write(200,*) "# ", n
   forall(i = 1:n) write(100,*) X(i)
 
+  !Ищем вектор невязки
+  allocate(R(n))
+  R = 0
+  forall(i = 1:n)
+     do j = 1,n
+        R(i) = R(i) + A(i,j)*X(j)
+     end do
+     R(i) = R(i) - B(i)
+  end forall
+  R_module = 0
+  forall(i = 1:n) R_module = R_module + R(i)**2
+  R_module = sqrt(R_module)
+  write(*,*) R_module
 end program solve_equalation
