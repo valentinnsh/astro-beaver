@@ -1,6 +1,7 @@
-program poly_interpolation 
-implicit none
-
+program poly_interpolation
+  use interpolation
+  implicit none
+  
 !Считываем тип сетки, для которой нужно вычислить значение 
 character(len=9) :: net
 integer n, i
@@ -12,24 +13,37 @@ real a,b
 real, allocatable, dimension(:,:) :: func_data, poly_data
 
 call getarg(1,net)
-open(100, file = net//'.dat')
-read(100,'(2x,I6)') n
-read(100,*) a, b
-allocate(func_data(0:n,1:2))
-func_data = 0
-allocate(poly_data(0:100*n,2))
-poly_data = 0
-read(100,*) func_data(0:n,2)
-close(100)
 
-if(net == 'uniform') then
-   open(200, file = 'res_uniform.dat')
-   call uniform_net(a,b,n,func_data) ! TODO
-   call calc_poly(a,b,n,func_data,poly_data) !TODO
-else
+if (net == 'chebyshev') then
+   open(100, file = 'chebyshev.dat')
+   read(100,'(2x,I6)') n
+   read(100,*) a, b
+   allocate(func_data(0:n,1:2))
+   func_data = 0
+   allocate(poly_data(0:100*n,2))
+   poly_data = 0
+   read(100,*) func_data(0:n,2)
+   close(100)
+   
    open(200, file = 'res_chebyshev.dat')
-   call chebyshev_net(a,b,n,func_data) !TODO
-   call calc_poly(a,b,n,func_data,poly_data)
+   call chebyshev_net(a,b,n,func_data)
+   call interpolate(a,b,n,func_data,poly_data)
+
+else
+   open(100, file = 'uniform.dat')
+   read(100,'(2x,I6)') n
+   read(100,*) a, b
+   allocate(func_data(0:n,1:2))
+   func_data = 0
+   allocate(poly_data(0:100*n,2))
+   poly_data = 0
+   read(100,*) func_data(0:n,2)
+   close(100)
+   
+   open(200, file = 'res_uniform.dat')
+   call uniform_net(a,b,n,func_data)
+   call interpolate(a,b,n,func_data,poly_data)
+
 end if
 
 do i = 0, 100*n+1

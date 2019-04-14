@@ -1,5 +1,7 @@
 #Data
 *.dat
+#Bup
+*~
 
 # Prerequisites
 *.d
