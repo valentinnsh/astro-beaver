@@ -35,26 +35,19 @@ contains
     end do
 
     eps = 0.000001
-    do i = 1, n
-       write(*, *) alpha(i, 1:n+1)
-    end do
-    select case( method )
-       !----------------------------ПРЯМОЙ ХОД ГАУССА----------------------------
 
+    select case( method )
+       !----------------------------Гаусс----------------------------
     case('g')
        do k = 1,n
           if(abs(alpha(k,k)) .lt. eps) then
              write(*,*) "Attention, value is too close to zero."
           end if
 
-          tmp_el = alpha(k,k)
           forall(j=k:n+1) alpha(k,j) = alpha(k,j)/alpha(k,k)
           forall(i = k+1:n, j = k:n+1) alpha(i,j) = alpha(i,j) - alpha(k,j)*alpha(i,k)
        end do
 
-       do i = 1, n
-          write(*, *) alpha(i, 1:n+1)
-       end do
        !Вычисляем вектор значений Х
        do i = n, 1, -1
           X(i) = alpha(i,(n+1))
@@ -62,8 +55,16 @@ contains
              X(i) = X(i)- alpha(i,j)*X(j)
           end do
        end do
+       !-------Жордан---------------------------------
+    case('j')
+       do k = 1,n
+          if(abs(alpha(k,k)) .lt. eps) then
+             write(*,*) "Attention, value is too close to zero."
+          end if
 
-       write(*,*) X(1:n)
+          forall(j=k:n+1) alpha(k,j) = alpha(k,j)/alpha(k,k)
+          forall(j = k:n+1, i =1:n, i .ne. k) alpha(i,j) = alpha(i,j) - alpha(k,j)*alpha(i,k)
+       end do
     case default
        write(*,*) "Error, wrong method name.\n"
     end select
