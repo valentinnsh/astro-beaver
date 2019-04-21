@@ -17,7 +17,7 @@ contains
     end do
   end subroutine read_matrix
 
-  subroutine find_solution(A, B, method, n, x)
+  subroutine find_solution(A, B, method, n, X)
     integer :: k, i, j, n
     real :: eps, tmp_el
     character :: method
@@ -36,7 +36,7 @@ contains
        alpha(i,n+1) = B(i)
     end do
 
-    eps = 0.000001
+    eps = 10e-6
 
     select case( method )
        !----------------------------Гаусс----------------------------
@@ -46,7 +46,8 @@ contains
              write(*,*) "Attention, value is too close to zero."
           end if
 
-          forall(j=k:n+1) alpha(k,j) = alpha(k,j)/alpha(k,k)
+          tmp_el = alpha(k,k)
+          forall(j=k:n+1) alpha(k,j) = alpha(k,j)/tmp_el
           forall(i = k+1:n, j = k:n+1) alpha(i,j) = alpha(i,j) - alpha(k,j)*alpha(i,k)
        end do
 
@@ -64,7 +65,8 @@ contains
              write(*,*) "Attention, value is too close to zero."
           end if
 
-          forall(j=k:n+1) alpha(k,j) = alpha(k,j)/alpha(k,k)
+          tmp_el = alpha(k,k)
+          forall(j=k:n+1) alpha(k,j) = alpha(k,j)/tmp_el
           forall(j = k:n+1, i =1:n, i .ne. k) alpha(i,j) = alpha(i,j) - alpha(k,j)*alpha(i,k)
        end do
 
