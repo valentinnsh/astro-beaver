@@ -34,7 +34,7 @@ contains
 
     ! Посчитаем матрицу Z = D^(-1)*(D − A)
     Z = 0
-    forall(i = 1:n, j = 1:n, i .ne. j) Z(i,j) = -A(i,j)/A(j,j)
+    forall(i = 1:n, j = 1:n, i .ne. j) Z(i,j) = -A(i,j)/A(i,i)
 
     !Посчитаем теперь ыектор G
     forall(i = 1:n) G(i) = B(i)/A(i,i)
