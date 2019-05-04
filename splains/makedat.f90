@@ -20,5 +20,6 @@ contains
        left = left + delta
     end do
     close(10)
+  end subroutine make_data_for_5_task
 
-  end module makedat
+end module makedat
