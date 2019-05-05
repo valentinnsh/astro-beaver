@@ -3,7 +3,7 @@ module splains
 contains
 
   subroutine aprox_by_3splains(XYP, res)
-    real, dimension
+    real, dimension(:,1:2) :: res
     real, dimension(:,:) :: XYP
     real, dimension(1:size(XYP,dim=2)) :: X, Y, P, C, S, R
     real, dimension(1:size(XYP,dim=2), 1:3) :: A, B, Btran, Q
@@ -28,8 +28,12 @@ contains
     call tri_transpose(B, Btran)
     call tri_matrix_mult(n+1, Q, Btran, QB)
 
-    R(1) =
-    forall(i = 2:n) R(i) = Y(i) - S(i-1)*QB(i,i-1) - S(i)*QB(i,i) - S(i+1)*QB(i,i+1)
+    R(1) = Y(1) - S(1)*QB(1,3) - S(2)*QB(1,4) - S(3)*QB(1,5)
+    R(2) = Y(2) - S(1)*QB(2,2) - S(2)*QB*(2,3) - S(3)*QB(2,4) - S(4)*QB(2,5)
+    forall(i = 3:n-1) R(i) = Y(i) - S(i-2)*QB(i,1) - S(i-1)*QB(i,2) - S(i)*QB(i,3) - S(i+1)*QB(i,4) - S(i+2)*QB(i,5)
+    R(n) = Y(n) - S(n+1)*QB(n,4) - S(n)*QB(n,3) - S(n-1)*QB(n,2) - S(n-2)*QB(n,1)
+    R(n+1) = Y(n+1) - S(n-1)*QB(n+1,1) - S(n)*QB(n+1,2) - S(n+1)*QB(n+1,3)
+
 
   end subroutine aprox_by_3splains
 
