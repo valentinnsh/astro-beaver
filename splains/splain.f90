@@ -8,6 +8,7 @@ contains
     real, dimension(1:size(XYP,dim=2)) :: X, Y, P, C, S, R
     real, dimension(1:size(XYP,dim=2), 1:3) :: A, B, Btran, Q
     real, dimension(1:size(XYP,dim=2), 1:5) :: L, QB
+    real :: currx, delta
     integer :: i, n
 
 
@@ -34,6 +35,19 @@ contains
     R(n) = Y(n) - S(n+1)*QB(n,4) - S(n)*QB(n,3) - S(n-1)*QB(n,2) - S(n-2)*QB(n,1)
     R(n+1) = Y(n+1) - S(n-1)*QB(n+1,1) - S(n)*QB(n+1,2) - S(n+1)*QB(n+1,3)
 
+    ! Тут мы вычисляем значения апроксимирующей функции на равномерной сетке !
+    !                    с числом узлов равным 100n+1                        !
+
+    currx = X(1)
+    delta = (X(n+1) - X(1))/100/n
+    do j = 1, 100*n+1
+       if(currx > X(i)) i = i+1
+       h = X(i+1) - X(i)
+       t = (currx - X(i))/h
+       res(j,1) = currx
+       res(j,2) = (1-t)*R(i) + R(i+1)*t - h**2*t*(1-t)/6*((2-t)*S(i) + (1+t)*S(i+1))
+       currx = currx + delta
+    end do
 
   end subroutine aprox_by_3splains
 
