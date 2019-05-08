@@ -101,5 +101,53 @@ contains
 
   end subroutine prepare_eq_set
 
+  subroutine pentadiagonal_matrix_method(L,S,C)
+    real, dimension(:) :: C, S
+    real, dimension(:, 1:5) :: L
+    real, dimension(1:size(S)) :: b,a,p,q,r
+    integer :: i,n
+
+    n = size(C) - 1
+
+    b(1) = 0
+    a(1) = L(1,3)
+    p(1) = L(2,2)/a(1)
+    q(1) = C(1)
+    r(1) = C(1)/a(1)
+
+    b(2) = L(2,2)
+    a(2) = L(2,3) - p(1)*b(2)
+    p(2) = (L(3,2) - q(1)*b(2))/a(2)
+    q(2) = L(4,1)/a(2)
+    r(2) = (C(2)-r(1)*b(2))/a(2)
+
+    do i = 3,n-1
+       b(i) = L(i,2) - p(i-2)*L(i,1)
+       a(i) = L(i,3) - p(i-1)*b(i) - q(i-2)*L(i,1)
+       p(i) = (L(i+1,2) - q(i-1)*b(i))/a(i)
+       q(i) = L(i+2,1)/a(i)
+       r(i) = (C(i) - r(i-1)*b(i) - r(i-2)*L(i,1))/a(i)
+    end do
+
+    b(n) = L(n,2) - p(n-2)*L(n,1)
+    a(n) = L(n,3) - p(n-1)*b(n) - q(n-1)*L(n,1)
+    p(n) = (L(n+1,2) - q(n-1)*b(n))/a(n)
+    r(n) = (C(n) - r(n-1)*b(n) - r(n-2)*L(n,1))/a(n)
+    q(n) = 0
+
+    b(n+1) = L(n+1,2) - p(n-1)*L(n+1,1)
+    a(n+1) = L(n+1,3) - p(n)*b(n+1) - q(n)*L(n+1,1)
+    p(n+1) = (0 - q(n)*b(n+1))/a(n+1)
+    q(n+1) = 0
+    r(n+1) = (C(n+1) - r(n)*b(n+1) - r(n-1)*L(n+1,1))/a(n+1)
+
+    ! Ищем наконец вектор решений S !
+    S(n+1) = r(n+1)
+    S(n) = r(n) - p(n)*S(n+1)
+
+    do i = n-1, 1, -1
+       S(i) = r(i) - p(i)*S(i+1) - q(i)*S(i+2)
+    end do
+  end subroutine pentadiagonal_matrix_method
 
 end module splains

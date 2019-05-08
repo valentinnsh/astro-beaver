@@ -9,9 +9,9 @@ program tester
 
   open(10, file = 'data.dat')
   read(10,'(2x,I6)') n
-  allocate(XYP(0:n,3))
+  allocate(XYP(1:n+1,3))
 
-  do i = 0,n
+  do i = 1, n+1
      read(10,*) XYP(i,1:3)
   end do
 
