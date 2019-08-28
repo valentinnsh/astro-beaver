@@ -103,51 +103,35 @@ contains
 
   end subroutine prepare_eq_set
 
-  subroutine pentadiagonal_matrix_method(L,S,C)
-    real, dimension(:) :: C, S
+  subroutine pentadiagonal_matrix_method(L,S,D)
+    real, dimension(:) :: D, S
     real, dimension(:, 1:5) :: L
-    real, dimension(1:size(S)) :: b,a,p,q,r
+    real, dimension(-1:size(S)) :: b,a,c,p,q,r, alpha, beta
     integer :: i,n
 
-    n = size(C) - 1
+    n = size(D)
 
-    b(1) = 0
-    a(1) = L(1,3)
-    p(1) = L(2,2)/a(1)
-    q(1) = C(1)
-    r(1) = C(1)/a(1)
+    a(1:n) = L(1:n,3)
+    b(1:n-1) = L(2:n,2)
+    c(1:n-2) = L(3:n,1)
 
-    b(2) = L(2,2)
-    a(2) = L(2,3) - p(1)*b(2)
-    p(2) = (L(3,2) - q(1)*b(2))/a(2)
-    q(2) = L(4,1)/a(2)
-    r(2) = (C(2)-r(1)*b(2))/a(2)
+    a(-1) = 0; a(0) = 0; b(-1) = 0; b(0) = 0; b(n) = 0; c(-1) = 0; c(0) = 0; c(n) = 0;
+    c(n-1) = 0; p(-1) = 0; p(0) = 0; q(-1) = 0; q(0) = 0; r(-1) = 0; r(0) = 0;
+    alpha(-1) = 0; alpha(0) = 0; beta(-1) = 0; beta(0) = 0;
 
-    do i = 3,n-1
-       b(i) = L(i,2) - p(i-2)*L(i,1)
-       a(i) = L(i,3) - p(i-1)*b(i) - q(i-2)*L(i,1)
-       p(i) = (L(i+1,2) - q(i-1)*b(i))/a(i)
-       q(i) = L(i+2,1)/a(i)
-       r(i) = (C(i) - r(i-1)*b(i) - r(i-2)*L(i,1))/a(i)
+    do i = 1,n
+       beta(i) = b(i-1) - p(i-2)*c(i-2)
+       alpha(i) = a(i) - p(i-1)*beta(i) - q(i-2)*c(i-2)
+       p(i) = (b(i) - q(i-1)*p(i))/alpha(i)
+       q(i) = c(i)/alpha(i)
+       r(i) = (D(i) - r(i-1)*beta(i) - r(i-2)*c(i-2))/alpha(i)
     end do
 
-    b(n) = L(n,2) - p(n-2)*L(n,1)
-    a(n) = L(n,3) - p(n-1)*b(n) - q(n-1)*L(n,1)
-    p(n) = (L(n+1,2) - q(n-1)*b(n))/a(n)
-    r(n) = (C(n) - r(n-1)*b(n) - r(n-2)*L(n,1))/a(n)
-    q(n) = 0
-
-    b(n+1) = L(n+1,2) - p(n-1)*L(n+1,1)
-    a(n+1) = L(n+1,3) - p(n)*b(n+1) - q(n)*L(n+1,1)
-    p(n+1) = (0 - q(n)*b(n+1))/a(n+1)
-    q(n+1) = 0
-    r(n+1) = (C(n+1) - r(n)*b(n+1) - r(n-1)*L(n+1,1))/a(n+1)
-
     ! Ищем наконец вектор решений S !
-    S(n+1) = r(n+1)
-    S(n) = r(n) - p(n)*S(n+1)
+    S(n) = r(n)
+    S(n-1) = r(n-1) - p(n-1)*S(n)
 
-    do i = n-1, 1, -1
+    do i = n-2, 1, -1
        S(i) = r(i) - p(i)*S(i+1) - q(i)*S(i+2)
     end do
   end subroutine pentadiagonal_matrix_method
