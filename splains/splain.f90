@@ -1,57 +1,72 @@
-module splains
+module splain
   use tri_matr
 contains
 
   subroutine aprox_by_3splains(XYP, res)
-    real, dimension(:,1:2) :: res
+    real, dimension(1:100*(size(XYP,dim=1)-1)+1,1:2) :: res
     real, dimension(:,:) :: XYP
-    real, dimension(1:size(XYP,dim=2)) :: X, Y, P, C, S, R
-    real, dimension(1:size(XYP,dim=2), 1:3) :: A, B, Btran, Q
-    real, dimension(1:size(XYP,dim=2), 1:5) :: L, QB
+    real, dimension(1:size(XYP,dim=1)) :: X, Y, P, C, S, R
+    real, dimension(1:size(XYP,dim=1), 1:3) :: A, B, Btran, Q
+    real, dimension(1:size(XYP,dim=1), 1:5) :: L, QB
     real :: currx, delta
-    integer :: i, n
+    integer :: i, n, j
 
 
-    n = size(XYP,dim=2) - 1
+    n = size(XYP,dim=1)
 
-    forall (i=1:n+1)
+    forall (i=1:n)
        X(i)=XYP(i,1)
        Y(i)=XYP(i,2)
        P(i)=XYP(i,3)
     end forall
 
     call fill_A_B_Q(X,Y,P,A,B,Q)
+
     call prepare_eq_set(A,B,Q,Y,L,C)
+
     call pentadiagonal_matrix_method(L,S,C)
 
     ! Считаем R - вектор результатов !
     R = 0; QB = 0;
     call tri_transpose(B, Btran)
-    call tri_matrix_mult(n+1, Q, Btran, QB)
+    call tri_matrix_mult(n, Q, Btran, QB)
 
+    ! Можно тут искать еще !
     R(1) = Y(1) - S(1)*QB(1,3) - S(2)*QB(1,4) - S(3)*QB(1,5)
-    R(2) = Y(2) - S(1)*QB(2,2) - S(2)*QB*(2,3) - S(3)*QB(2,4) - S(4)*QB(2,5)
-    forall(i = 3:n-1) R(i) = Y(i) - S(i-2)*QB(i,1) - S(i-1)*QB(i,2) - S(i)*QB(i,3) - S(i+1)*QB(i,4) - S(i+2)*QB(i,5)
-    R(n) = Y(n) - S(n+1)*QB(n,4) - S(n)*QB(n,3) - S(n-1)*QB(n,2) - S(n-2)*QB(n,1)
-    R(n+1) = Y(n+1) - S(n-1)*QB(n+1,1) - S(n)*QB(n+1,2) - S(n+1)*QB(n+1,3)
+    R(2) = Y(2) - S(1)*QB(2,2) - S(2)*QB(2,3) - S(3)*QB(2,4) - S(4)*QB(2,5)
+    forall(i = 3:n-2) R(i) = Y(i) - S(i-2)*QB(i,1) - S(i-1)*QB(i,2) - S(i)*QB(i,3) - S(i+1)*QB(i,4) - S(i+2)*QB(i,5)
+    R(n-1) = Y(n-1) - S(n-1)*QB(n-1,4) - S(n-2)*QB(n-1,3) - S(n-3)*QB(n-1,2) - S(n-4)*QB(n-1,1)
+    R(n) = Y(n) - S(n-2)*QB(n,1) - S(n-1)*QB(n,2) - S(n)*QB(n,3)
 
-    ! Тут мы вычисляем значения апроксимирующей функции на равномерной сетке !
+
+    ! Тут мы вычисляем значения аппроксимирующей функции на равномерной сетке !
     !                    с числом узлов равным 100n+1                        !
 
     currx = X(1)
-    delta = (X(n+1) - X(1))/100/n
-    do j = 1, 100*n+1
-       if(currx > X(i)) i = i+1
-       h = X(i+1) - X(i)
+    delta = (X(n) - X(1))/100/(n-1)
+    i = 1
+
+    h = X(2) - X(1)
+    do j = 1, 100*(n-1)
+       if((currx > X(i+1)) .and. (i .lt. n)) then
+          i = i+1
+          h = X(i+1) - X(i)
+
+          !print *, i, ' ', j
+       end if
+
        t = (currx - X(i))/h
        res(j,1) = currx
        res(j,2) = (1-t)*R(i) + R(i+1)*t - h**2*t*(1-t)/6*((2-t)*S(i) + (1+t)*S(i+1))
        currx = currx + delta
     end do
 
+    res(100*(n-1)+1,1) = currx+delta
+    res(100*(n-1)+1,2) = R(i+1)
+
   end subroutine aprox_by_3splains
 
-  subroutine fill_A_B_Q(X,Y,P,A,B,Q)
+  subroutine fill_A_B_Q(X, Y, P, A, B, Q)                                             ! может быть тут
     integer :: i, n
     real, dimension(:) :: X, Y, P
     real, dimension(:,:) :: A,B,Q
@@ -64,8 +79,9 @@ contains
 
     A(1,2) = 2*(X(2)-X(1)); A(n+1,2) = 2*(X(n+1)-X(n))
     A(2,2) = 2*(X(3)-X(1)); A(2,3) = X(3) - X(2)
-    A(n,1) = X(n) - X(n-1); A(n,2) = 2*(X(n+1)-X(n-1))
-    forall(i = 3:n)
+    A(n,1) = X(n) - X(n-1); A(n,2) = 2*(X(n+1)-X(n-1));
+    A(n+1,2) = 2*(X(n+1) - X(n))
+    forall(i = 3:n-1)
        A(i,1) = X(i) - X(i-1)
        A(i,2) = 2*(X(i+1) - X(i-1))
        A(i,3) = X(i+1) - X(i)
@@ -81,7 +97,7 @@ contains
 
     ! Заполняем трехдиагональную матрицу Q !
 
-    forall(i=1,n+1) Q(i,2) = 1/P(i)
+    forall(i=1:n+1) Q(i,2) = 1/P(i)
 
   end subroutine fill_A_B_Q
 
@@ -90,22 +106,36 @@ contains
   !    В матричном виде система пусть имеет вид LS = C, где        !
   !            L = A + 6*B*Q*Btran, a C = 6*B*Y                    !
 
-  subroutine prepare_eq_set(A,B,Q,Y,L,C)
+  subroutine prepare_eq_set(A,B,Q,Y,L,C)                                     ! В этой процедуре потенциально может быть ошибка
     integer :: i, n
-    real, dimension(:) :: Y, P, C
-    real, dimension(:,:) :: A, B, Q
-    real, dimension(1:size(Y),1:5) :: BQ, BQBtran
+    real, dimension(1:size(Y)) :: Y, P, C, BY
+    real, dimension(1:size(Y), 1:3) :: A, B, Q, Btran
+    real, dimension(1:size(Y),1:5) :: BQ, BQBtran, L
 
     n = size(Y) - 1
-    call tri_matrix_mult(n-1, B, Q, BQ)!BBQ????
+
+    call tri_matrix_mult(n+1, B, Q, BQ)
+
+    call tri_transpose(B, Btran)
 
 
+    call tri_matrix_mult(n+1, BQ(:,2:4), Btran, BQBtran)
 
+    BQBtran = 6*BQBtran
+    BQBtran(:,2:4) = BQBtran(:,2:4) + A
+
+    L = BQBtran
+
+    BY(1) = B(1,2)*Y(1) + B(1,3)*Y(2)
+    do i = 2,n-1
+       BY(i) = B(i,1)*Y(i-1) + B(i,2)*Y(i) + B(i,3)*Y(i+1)
+    end do
+    BY(n) = B(n,2)*Y(n-1) + B(n,3)*Y(n)
   end subroutine prepare_eq_set
 
-  subroutine pentadiagonal_matrix_method(L,S,D)
+  subroutine pentadiagonal_matrix_method(L,S,D)                          ! Ошибка может бцыть тут, но вряд ли
     real, dimension(:) :: D, S
-    real, dimension(:, 1:5) :: L
+    real, dimension(1:size(D), 1:5) :: L
     real, dimension(-1:size(S)) :: b,a,c,p,q,r, alpha, beta
     integer :: i,n
 
@@ -136,4 +166,4 @@ contains
     end do
   end subroutine pentadiagonal_matrix_method
 
-end module splains
+end module splain

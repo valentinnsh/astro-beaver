@@ -2,9 +2,10 @@ module tri_matr
 contains
 
   subroutine tri_transpose(A, tranA)
-    real, dimension(:,:) :: A, tranA
+    real, dimension(0:,:) :: A, tranA
     integer ::i,n
 
+    n = size(A,dim=1)-1
     tranA = 0
     tranA(0,2) = A(0,2); tranA(0,3) = A(1,1)
 
@@ -53,7 +54,7 @@ contains
        matrix_C(i,5)=matrix_A(i,3)*matrix_B(i+1,3)
     enddo
 
-    write(*,*) matrix_C(1, 3)
+    !write(*,*) matrix_C(1, 3)
   end subroutine tri_matrix_mult
 
 end module tri_matr
