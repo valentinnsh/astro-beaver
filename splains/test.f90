@@ -1,15 +1,15 @@
 program tester
-  use makedat
+  !use makedat
   use splain
   implicit none
 
-  integer :: i, j, n
+  integer :: i, n
   real, allocatable, dimension(:,:) :: XYP
   real, allocatable, dimension(:,:) :: res
 
 
 
-  call make_data_for_5_task(5,0.0,100.0)
+  ! call make_data_for_5_task(5,0.0,100.0)
 
   open(10, file = 'data.dat')
   open(20, file = 'result.dat')

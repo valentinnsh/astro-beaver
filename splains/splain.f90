@@ -20,7 +20,7 @@ contains
        P(i)=XYP(i,3)
     end forall
 
-    call fill_A_B_Q(X,Y,P,A,B,Q)
+    call fill_A_B_Q(X,P,A,B,Q)
 
     call prepare_eq_set(A,B,Q,Y,L,C)
 
@@ -66,9 +66,9 @@ contains
 
   end subroutine aprox_by_3splains
 
-  subroutine fill_A_B_Q(X, Y, P, A, B, Q)                                             ! может быть тут
+  subroutine fill_A_B_Q(X, P, A, B, Q)                                             ! может быть тут
     integer :: i, n
-    real, dimension(:) :: X, Y, P
+    real, dimension(:) :: X, P
     real, dimension(:,:) :: A,B,Q
     A = 0
     B = 0
@@ -108,21 +108,21 @@ contains
 
   subroutine prepare_eq_set(A,B,Q,Y,L,C)                                     ! В этой процедуре потенциально может быть ошибка
     integer :: i, n
-    real, dimension(1:size(Y)) :: Y, P, C, BY
-    real, dimension(1:size(Y), 1:3) :: A, B, Q, Btran
-    real, dimension(1:size(Y),1:5) :: BQ, BQBtran, L
+    real, dimension(1:size(Y)) :: Y, BY, C
+    real, dimension(1:size(Y), 1:3) :: A, B, Q, Btran, BQ1
+    real, dimension(1:size(Y),1:5) :: BQ,  BQBtran, L
 
-    n = size(Y) - 1
+    n = size(Y)
 
-    call tri_matrix_mult(n+1, B, Q, BQ)
+    call tri_matrix_mult(n, B, Q, BQ)
 
     call tri_transpose(B, Btran)
 
-
-    call tri_matrix_mult(n+1, BQ(:,2:4), Btran, BQBtran)
+    forall (i=1:n) BQ1(i, 1:3) = BQ(i, 2:4)
+    call tri_matrix_mult(n, BQ1, Btran, BQBtran)
 
     BQBtran = 6*BQBtran
-    BQBtran(:,2:4) = BQBtran(:,2:4) + A
+    BQBtran(:,2:4) = BQBtran(:,2:4) + A(:, 1:3)
 
     L = BQBtran
 
@@ -131,9 +131,10 @@ contains
        BY(i) = B(i,1)*Y(i-1) + B(i,2)*Y(i) + B(i,3)*Y(i+1)
     end do
     BY(n) = B(n,2)*Y(n-1) + B(n,3)*Y(n)
+    C = BY*6
   end subroutine prepare_eq_set
 
-  subroutine pentadiagonal_matrix_method(L,S,D)                          ! Ошибка может бцыть тут, но вряд ли
+  subroutine pentadiagonal_matrix_method(L,S,D)
     real, dimension(:) :: D, S
     real, dimension(1:size(D), 1:5) :: L
     real, dimension(-1:size(S)) :: b,a,c,p,q,r, alpha, beta
@@ -152,7 +153,7 @@ contains
     do i = 1,n
        beta(i) = b(i-1) - p(i-2)*c(i-2)
        alpha(i) = a(i) - p(i-1)*beta(i) - q(i-2)*c(i-2)
-       p(i) = (b(i) - q(i-1)*p(i))/alpha(i)
+       p(i) = (b(i) - q(i-1)*beta(i))/alpha(i)
        q(i) = c(i)/alpha(i)
        r(i) = (D(i) - r(i-1)*beta(i) - r(i-2)*c(i-2))/alpha(i)
     end do
