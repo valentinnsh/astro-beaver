@@ -1,5 +1,5 @@
 program tester
-  !use makedat
+  use makedat
   use splain
   implicit none
 
@@ -9,7 +9,7 @@ program tester
 
 
 
-  ! call make_data_for_5_task(5,0.0,100.0)
+  call make_data_for_5_task(5,0.0,10.0)
 
   open(10, file = 'data.dat')
   open(20, file = 'result.dat')

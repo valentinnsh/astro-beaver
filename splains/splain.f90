@@ -31,20 +31,18 @@ contains
     call tri_transpose(B, Btran)
     call tri_matrix_mult(n, Q, Btran, QB)
 
-    ! Можно тут искать еще !
     R(1) = Y(1) - S(1)*QB(1,3) - S(2)*QB(1,4) - S(3)*QB(1,5)
     R(2) = Y(2) - S(1)*QB(2,2) - S(2)*QB(2,3) - S(3)*QB(2,4) - S(4)*QB(2,5)
     forall(i = 3:n-2) R(i) = Y(i) - S(i-2)*QB(i,1) - S(i-1)*QB(i,2) - S(i)*QB(i,3) - S(i+1)*QB(i,4) - S(i+2)*QB(i,5)
     R(n-1) = Y(n-1) - S(n-1)*QB(n-1,4) - S(n-2)*QB(n-1,3) - S(n-3)*QB(n-1,2) - S(n-4)*QB(n-1,1)
     R(n) = Y(n) - S(n-2)*QB(n,1) - S(n-1)*QB(n,2) - S(n)*QB(n,3)
 
-
     ! Тут мы вычисляем значения аппроксимирующей функции на равномерной сетке !
     !                    с числом узлов равным 100n+1                        !
 
     currx = X(1)
     delta = (X(n) - X(1))/100/(n-1)
-    i = 1
+    i = 0
 
     h = X(2) - X(1)
     do j = 1, 100*(n-1)
@@ -61,12 +59,12 @@ contains
        currx = currx + delta
     end do
 
-    res(100*(n-1)+1,1) = currx+delta
-    res(100*(n-1)+1,2) = R(i+1)
+    res(100*(n-1)+1,1) = currx
+    res(100*(n-1)+1,2) = R(n)
 
   end subroutine aprox_by_3splains
 
-  subroutine fill_A_B_Q(X, P, A, B, Q)                                             ! может быть тут
+  subroutine fill_A_B_Q(X, P, A, B, Q)
     integer :: i, n
     real, dimension(:) :: X, P
     real, dimension(:,:) :: A,B,Q
@@ -106,8 +104,7 @@ contains
   !    В матричном виде система пусть имеет вид LS = C, где        !
   !            L = A + 6*B*Q*Btran, a C = 6*B*Y                    !
 
-  subroutine prepare_eq_set(A,B,Q,Y,L,C)                                     ! В этой процедуре потенциально может быть ошибка
-    integer :: i, n
+  subroutine prepare_eq_set(A,B,Q,Y,L,C)
     real, dimension(1:size(Y)) :: Y, BY, C
     real, dimension(1:size(Y), 1:3) :: A, B, Q, Btran, BQ1
     real, dimension(1:size(Y),1:5) :: BQ,  BQBtran, L
@@ -130,7 +127,7 @@ contains
     do i = 2,n-1
        BY(i) = B(i,1)*Y(i-1) + B(i,2)*Y(i) + B(i,3)*Y(i+1)
     end do
-    BY(n) = B(n,2)*Y(n-1) + B(n,3)*Y(n)
+    BY(n) = B(n,1)*Y(n-1) + B(n,2)*Y(n)
     C = BY*6
   end subroutine prepare_eq_set
 
