@@ -16,7 +16,7 @@ contains
     write(10,"('# ',I6)") n
 
     do i=0,n
-       write(10,*) left, sin(left), 3000
+       write(10,*) left, sin(left)**2 + 3*log(left), 3000
        left = left + delta
     end do
     close(10)
