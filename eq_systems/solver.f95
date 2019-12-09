@@ -84,12 +84,12 @@ contains
           else
              swap_logs(k,1:2) = k-1 + minloc(alpha(k:n,k:n))
           end if
-          tmp_X(1:n) = alpha(1:n,swap_logs(k,1))
-          alpha(1:n, swap_logs(k,1)) = alpha(1:n,k)
+          tmp_X(1:n) = alpha(1:n,swap_logs(k,2))
+          alpha(1:n, swap_logs(k,2)) = alpha(1:n,k)
           alpha(1:n,k) = tmp_X(1:n)
 
-          tmp_X(1:n+1) = alpha(swap_logs(k,2), 1:n+1)
-          alpha(swap_logs(k,2), 1:n+1) = alpha(k, 1:n+1)
+          tmp_X(1:n+1) = alpha(swap_logs(k,1), 1:n+1)
+          alpha(swap_logs(k,1), 1:n+1) = alpha(k, 1:n+1)
           alpha(k, 1:n+1) = tmp_X(1:n+1)
 
           forall(j=k:n+1) alpha(k,j) = alpha(k,j)/alpha(k,k)
