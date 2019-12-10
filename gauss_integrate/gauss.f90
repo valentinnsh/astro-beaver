@@ -8,8 +8,8 @@ contains
   function gauss_quad_coef(n, t) result(A)
     real(8) :: t(1:n)
     integer(4) :: n
-    real(8), allocatable :: A(:), M(:,:), B(:)
-    integer(4) :: i, k
+    real(8), allocatable :: A(:), tmp_A(:), M(:,:), B(:)
+    integer(4) :: i, k, j
     character :: key = 'i'
 
     allocate(A(1:n), M(1:n, 1:n), B(1:n))
@@ -28,7 +28,25 @@ contains
        B(k) = 2.0_8/k
     end do
 
-    call find_solution(M, B, key, n, A)
+    call find_solution(M, B, key, n, tmp_A)
+    call quicksort(tmp_A,1,n)
+
+    j = 1
+    if (mod(n,2) .eq. 1) then
+       A(n/2+1) = tmp_A(n)
+       do i = 1, n-1, 2
+          A(j) = tmp_A(i)
+          A(n+1-j) = tmp_A(i)
+          j = j+1
+       end do
+
+    else
+       do i = 1,n,2
+          A(j) = tmp_A(i)
+          A(n+1-j) = tmp_A(i)
+          j = j + 1
+       end do
+    end if
   end function  gauss_quad_coef
 
   function integration(lim_a, lim_b, n, f) result(res)
