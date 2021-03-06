@@ -6,7 +6,7 @@ program task1
   integer :: n
   real :: start, finish
 
-  !call make_data(1300)
+  call make_data(10)
   
   open(1, file='data1.dat')
   read(1,'(2x,I6)') n
